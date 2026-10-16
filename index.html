@@ -7,102 +7,54 @@
   <title>Amín cumple 8 · Video TV</title>
   <style>
     * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #000;
-      font-family: Arial, Helvetica, sans-serif;
-    }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: Arial, Helvetica, sans-serif; }
     body { display: grid; place-items: center; }
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-      background: #000;
-    }
+    #player { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
     #start {
-      position: fixed;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      gap: 12px;
-      padding: 24px;
-      border: 0;
-      color: #fff;
-      background: #000;
-      text-align: center;
-      cursor: pointer;
+      position: fixed; inset: 0; display: grid; place-items: center; gap: 12px; padding: 24px;
+      border: 0; color: #fff; background: #000; text-align: center; cursor: pointer;
     }
     #start .title { font-size: clamp(28px, 5vw, 64px); font-weight: 800; }
     #start .hint { font-size: clamp(16px, 2vw, 24px); opacity: .8; }
     #start.hidden { display: none; }
-    #error {
-      position: fixed;
-      left: 16px;
-      right: 16px;
-      bottom: 16px;
-      color: #fff;
-      background: #8b1d1d;
-      padding: 12px 16px;
-      text-align: center;
-      display: none;
-    }
+    #notice { position: fixed; left: 16px; right: 16px; bottom: 16px; color: #fff; background: #222; padding: 10px 14px; text-align: center; font-size: 14px; }
+    #notice.hidden { display: none; }
   </style>
 </head>
 <body>
-  <video id="video" autoplay loop playsinline preload="auto">
-    <source src="jurassic.mp4" type="video/mp4">
-    Tu navegador no puede reproducir este video.
-  </video>
+  <iframe id="player"
+    src="https://drive.google.com/file/d/13bv6n8ZkpSJQkQHihCi7knLice-_IKeF/preview"
+    allow="autoplay; fullscreen"
+    allowfullscreen
+    title="Video del cumpleaños de Amín"></iframe>
 
   <button id="start" type="button" aria-label="Iniciar video">
     <span>
       <span class="title">AMÍN CUMPLE 8</span><br>
-      <span class="hint">▶ Tocar para iniciar el video en pantalla completa</span>
+      <span class="hint">▶ Tocar para abrir el video en pantalla completa</span>
     </span>
   </button>
-  <div id="error">No se encontró el video. Subí el archivo con el nombre exacto <strong>jurassic.mp4</strong> al repositorio.</div>
+  <div id="notice">Si el video no aparece, verificá que Google Drive permita el acceso a “Cualquier persona con el enlace”. El bucle automático depende del reproductor de Drive.</div>
 
   <script>
-    const video = document.getElementById('video');
+    const player = document.getElementById('player');
     const start = document.getElementById('start');
-    const error = document.getElementById('error');
-
-    video.muted = true;
-    video.play().then(() => {
-      // Se mantiene el botón inicial para permitir activar audio y pantalla completa
-      // con una interacción del usuario, como exigen muchos navegadores de TV.
-    }).catch(() => {});
-
-    video.addEventListener('error', () => { error.style.display = 'block'; });
-    video.addEventListener('playing', () => { error.style.display = 'none'; });
+    const notice = document.getElementById('notice');
 
     start.addEventListener('click', async () => {
+      start.classList.add('hidden');
+      notice.classList.add('hidden');
       try {
-        video.muted = false;
-        await video.play();
-        if (document.documentElement.requestFullscreen) {
-          try { await document.documentElement.requestFullscreen(); } catch (_) {}
-        }
-        start.classList.add('hidden');
-      } catch (_) {
-        video.muted = true;
-        try {
-          await video.play();
-          start.classList.add('hidden');
-        } catch (_) {
-          error.style.display = 'block';
-        }
-      }
+        if (player.requestFullscreen) await player.requestFullscreen();
+        else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+      } catch (_) {}
     });
 
-    // Un toque/clic durante la reproducción permite mostrar u ocultar el botón de inicio.
-    video.addEventListener('click', () => {
-      if (document.fullscreenElement && document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {});
+    // Al salir de pantalla completa, permite volver a mostrar la indicación inicial.
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+        start.classList.remove('hidden');
+        notice.classList.remove('hidden');
       }
     });
   </script>
