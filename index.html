@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <title>Amín cumple 8 · Video TV</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    body { display: grid; place-items: center; }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      background: #000;
+    }
+    #start {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      gap: 12px;
+      padding: 24px;
+      border: 0;
+      color: #fff;
+      background: #000;
+      text-align: center;
+      cursor: pointer;
+    }
+    #start .title { font-size: clamp(28px, 5vw, 64px); font-weight: 800; }
+    #start .hint { font-size: clamp(16px, 2vw, 24px); opacity: .8; }
+    #start.hidden { display: none; }
+    #error {
+      position: fixed;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      color: #fff;
+      background: #8b1d1d;
+      padding: 12px 16px;
+      text-align: center;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <video id="video" autoplay loop playsinline preload="auto">
+    <source src="jurassic.mp4" type="video/mp4">
+    Tu navegador no puede reproducir este video.
+  </video>
+
+  <button id="start" type="button" aria-label="Iniciar video">
+    <span>
+      <span class="title">AMÍN CUMPLE 8</span><br>
+      <span class="hint">▶ Tocar para iniciar el video en pantalla completa</span>
+    </span>
+  </button>
+  <div id="error">No se encontró el video. Subí el archivo con el nombre exacto <strong>jurassic.mp4</strong> al repositorio.</div>
+
+  <script>
+    const video = document.getElementById('video');
+    const start = document.getElementById('start');
+    const error = document.getElementById('error');
+
+    video.muted = true;
+    video.play().then(() => {
+      // Se mantiene el botón inicial para permitir activar audio y pantalla completa
+      // con una interacción del usuario, como exigen muchos navegadores de TV.
+    }).catch(() => {});
+
+    video.addEventListener('error', () => { error.style.display = 'block'; });
+    video.addEventListener('playing', () => { error.style.display = 'none'; });
+
+    start.addEventListener('click', async () => {
+      try {
+        video.muted = false;
+        await video.play();
+        if (document.documentElement.requestFullscreen) {
+          try { await document.documentElement.requestFullscreen(); } catch (_) {}
+        }
+        start.classList.add('hidden');
+      } catch (_) {
+        video.muted = true;
+        try {
+          await video.play();
+          start.classList.add('hidden');
+        } catch (_) {
+          error.style.display = 'block';
+        }
+      }
+    });
+
+    // Un toque/clic durante la reproducción permite mostrar u ocultar el botón de inicio.
+    video.addEventListener('click', () => {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    });
+  </script>
+</body>
+</html>
